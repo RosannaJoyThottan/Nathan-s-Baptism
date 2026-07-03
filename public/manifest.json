@@ -1,0 +1,22 @@
+{
+  "name": "Nathan's Baptism",
+  "short_name": "Nathan's Baptism",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8f4eb",
+  "theme_color": "#1A365D",
+  "description": "Join the Holy Baptism ceremony of Nathan Kelvin and share your photo memories here!",
+  "icons": [
+    {
+      "src": "/icon-192-pink.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512-pink.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
