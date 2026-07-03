@@ -123,14 +123,8 @@ const upload = multer({
 const DB_KEY = 'data/database.json';
 const BLESSINGS_KEY = 'data/blessings.json';
 
-// Local memory cache
-let cachedDB = null;
-let cachedBlessings = null;
-
 // Helper function to read/write JSON database
 const readDB = async () => {
-  if (cachedDB !== null) return cachedDB;
-
   if (isR2Configured && r2Client) {
     try {
       const response = await r2Client.send(
@@ -140,8 +134,7 @@ const readDB = async () => {
         })
       );
       const dataStr = await response.Body.transformToString();
-      cachedDB = JSON.parse(dataStr || '[]');
-      return cachedDB;
+      return JSON.parse(dataStr || '[]');
     } catch (err) {
       if (err.name === 'NoSuchKey') {
         console.log('database.json not found on Cloudflare R2. Initializing with local seed or empty array.');
@@ -151,9 +144,8 @@ const readDB = async () => {
             seed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8') || '[]');
           } catch (_) {}
         }
-        cachedDB = seed;
         await writeDB(seed);
-        return cachedDB;
+        return seed;
       }
       console.error('Failed to read database.json from R2:', err);
     }
@@ -161,23 +153,18 @@ const readDB = async () => {
 
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify([]));
-    cachedDB = [];
     return [];
   }
   try {
     const data = fs.readFileSync(DB_FILE, 'utf8');
-    cachedDB = JSON.parse(data || '[]');
-    return cachedDB;
+    return JSON.parse(data || '[]');
   } catch (error) {
     console.error('Error reading DB file, resetting database:', error);
-    cachedDB = [];
     return [];
   }
 };
 
 const writeDB = async (data) => {
-  cachedDB = data;
-
   if (isR2Configured && r2Client) {
     try {
       await r2Client.send(
@@ -202,8 +189,6 @@ const writeDB = async (data) => {
 };
 
 const readBlessings = async () => {
-  if (cachedBlessings !== null) return cachedBlessings;
-
   if (isR2Configured && r2Client) {
     try {
       const response = await r2Client.send(
@@ -213,8 +198,7 @@ const readBlessings = async () => {
         })
       );
       const dataStr = await response.Body.transformToString();
-      cachedBlessings = JSON.parse(dataStr || '[]');
-      return cachedBlessings;
+      return JSON.parse(dataStr || '[]');
     } catch (err) {
       if (err.name === 'NoSuchKey') {
         console.log('blessings.json not found on Cloudflare R2. Initializing with local seed or empty array.');
@@ -224,9 +208,8 @@ const readBlessings = async () => {
             seed = JSON.parse(fs.readFileSync(BLESSINGS_FILE, 'utf8') || '[]');
           } catch (_) {}
         }
-        cachedBlessings = seed;
         await writeBlessings(seed);
-        return cachedBlessings;
+        return seed;
       }
       console.error('Failed to read blessings.json from R2:', err);
     }
@@ -234,23 +217,18 @@ const readBlessings = async () => {
 
   if (!fs.existsSync(BLESSINGS_FILE)) {
     fs.writeFileSync(BLESSINGS_FILE, JSON.stringify([]));
-    cachedBlessings = [];
     return [];
   }
   try {
     const data = fs.readFileSync(BLESSINGS_FILE, 'utf8');
-    cachedBlessings = JSON.parse(data || '[]');
-    return cachedBlessings;
+    return JSON.parse(data || '[]');
   } catch (error) {
     console.error('Error reading blessings file, resetting datastore:', error);
-    cachedBlessings = [];
     return [];
   }
 };
 
 const writeBlessings = async (data) => {
-  cachedBlessings = data;
-
   if (isR2Configured && r2Client) {
     try {
       await r2Client.send(
