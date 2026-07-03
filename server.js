@@ -9,17 +9,23 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } fro
 import { exec } from 'child_process';
 import util from 'util';
 import os from 'os';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const archiver = require('archiver');
+import { ZipArchive } from 'archiver';
+
+
 
 
 // Load environmental variables
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = typeof __filename !== 'undefined' 
+  ? __filename 
+  : (typeof import.meta !== 'undefined' && import.meta.url ? fileURLToPath(import.meta.url) : '');
+
+const __dirname = typeof __dirname !== 'undefined' 
+  ? __dirname 
+  : (__filename ? path.dirname(__filename) : process.cwd());
 const execPromise = util.promisify(exec);
+
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -35,15 +41,17 @@ app.use((req, res, next) => {
 });
 
 // Set up directories
-const UPLOADS_DIR = process.env.NETLIFY 
+const isNetlify = !!process.env.NETLIFY || !!process.env.LAMBDA_TASK_ROOT || __dirname.includes('/var/task') || __dirname.includes('/netlify/functions');
+
+const UPLOADS_DIR = isNetlify 
   ? path.join(os.tmpdir(), 'uploads') 
   : path.join(__dirname, 'uploads');
 
-const DB_FILE = process.env.NETLIFY 
+const DB_FILE = isNetlify 
   ? path.join(os.tmpdir(), 'database.json') 
   : path.join(__dirname, 'database.json');
 
-const BLESSINGS_FILE = process.env.NETLIFY 
+const BLESSINGS_FILE = isNetlify 
   ? path.join(os.tmpdir(), 'blessings.json') 
   : path.join(__dirname, 'blessings.json');
 
@@ -542,7 +550,7 @@ app.get('/api/download-all-photos', async (req, res) => {
 
     // Zip directory elements using archiver (pure JS zipping)
     const output = fs.createWriteStream(zipPath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = new ZipArchive({ zlib: { level: 9 } });
 
     archive.pipe(output);
     archive.directory(tempDir, false);
@@ -605,7 +613,7 @@ app.post('/api/compile-zip', upload.array('files'), async (req, res) => {
 
     // Zip directory elements using archiver (pure JS zipping)
     const output = fs.createWriteStream(zipPath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = new ZipArchive({ zlib: { level: 9 } });
 
     archive.pipe(output);
     archive.directory(tempDir, false);
@@ -682,7 +690,7 @@ app.use((err, req, res, next) => {
   next();
 });
 
-if (!process.env.NETLIFY) {
+if (!isNetlify) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend server started on http://localhost:${PORT}`);
     console.log(`Open on other local devices with: http://<your-local-ip>:${PORT}`);
