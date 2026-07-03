@@ -9,7 +9,10 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } fro
 import { exec } from 'child_process';
 import util from 'util';
 import os from 'os';
-import archiver from 'archiver';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const archiver = require('archiver');
+
 
 // Load environmental variables
 dotenv.config();
