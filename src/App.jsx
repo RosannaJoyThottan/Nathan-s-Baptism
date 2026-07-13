@@ -103,7 +103,37 @@ const saveIndexedDBBlessing = async (blessing) => {
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState('invitation');
+  const [activeTab, setActiveTab] = useState(() => {
+    const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+    if (path.endsWith('/album')) return 'album';
+    if (path.endsWith('/upload')) return 'upload';
+    return 'invitation';
+  });
+
+  // Sync activeTab state changes to the URL pathname
+  useEffect(() => {
+    const path = activeTab === 'invitation' ? '/' : `/${activeTab}`;
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }, [activeTab]);
+
+  // Handle browser back/forward history events
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+      if (path.endsWith('/album')) {
+        setActiveTab('album');
+      } else if (path.endsWith('/upload')) {
+        setActiveTab('upload');
+      } else {
+        setActiveTab('invitation');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [isEnvelopeOpened, setIsEnvelopeOpened] = useState(false);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
 
@@ -1020,7 +1050,7 @@ function App() {
       {/* Background audio track */}
       <audio
         ref={audioRef}
-        src="/lullaby.ogg"
+        src="/lullaby.mp3"
         loop
       />
 
@@ -1616,7 +1646,7 @@ function App() {
                           </div>
                         </div>
 
-                        <p className="invite-footer">Your presence and blessings are our greatest gifts.</p>
+                        <p className="invite-footer">We look forward to celebrating this special day with you.</p>
 
                         <div className="invite-hosts" style={{ marginTop: '20px', borderTop: '1px solid rgba(212, 175, 55, 0.25)', paddingTop: '15px' }}>
                           <p style={{
@@ -1765,6 +1795,13 @@ function App() {
                           </div>
                           <div className="polaroid-caption">Little Gentleman</div>
                         </div>
+
+                        <div className="polaroid-card card-tilt-left-sweet">
+                          <div className="polaroid-image-wrapper">
+                            <img src="/milestones/family_pic.jpg" alt="Family picture" />
+                          </div>
+                          <div className="polaroid-caption">Our Forever Team</div>
+                        </div>
                       </div>
                     </div>
 
@@ -1814,6 +1851,43 @@ function App() {
 
                 {/* Section Actions (Public users get a single Download Photos button for convenience; admin gets advanced features) */}
                 <div className="section-actions-wrapper">
+                  {albumView === 'photos' && (
+                    <button
+                      onClick={() => {
+                        setUploadType('photo');
+                        setActiveTab('upload');
+                      }}
+                      className="btn-export-option"
+                      style={{
+                        background: 'var(--primary-gold)',
+                        color: 'var(--navy)',
+                        borderColor: 'var(--primary-gold)',
+                        fontWeight: '700'
+                      }}
+                      title="Upload a new photo"
+                    >
+                      <Upload size={14} style={{ marginRight: '6px' }} />
+                      Upload Photo
+                    </button>
+                  )}
+                  {albumView === 'blessings' && (
+                    <button
+                      onClick={() => {
+                        setUploadType('blessing');
+                        setActiveTab('upload');
+                      }}
+                      className="btn-export-option"
+                      style={{
+                        background: 'var(--primary-gold)',
+                        color: 'var(--navy)',
+                        borderColor: 'var(--primary-gold)',
+                        fontWeight: '700'
+                      }}
+                      title="Write a blessing"
+                    >
+                      ✍️ Write Blessing
+                    </button>
+                  )}
                   {albumView === 'photos' && photos.length > 0 && (
                     <button
                       onClick={handleDownloadAllPhotos}
@@ -2076,7 +2150,7 @@ function App() {
                         <input
                           type="text"
                           id="guest-name"
-                          placeholder="e.g. Aunt Jis or Uncle Chris"
+                          placeholder="e.g. Susy Aunty or John Uncle"
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
                           className="form-input"
@@ -2124,7 +2198,7 @@ function App() {
                         <input
                           type="text"
                           id="blessing-guest-name"
-                          placeholder="e.g. Aunt Jis or Uncle Chris"
+                          placeholder="e.g. Susy Aunty or John Uncle"
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
                           className="form-input"

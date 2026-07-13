@@ -17,13 +17,13 @@ import { ZipArchive } from 'archiver';
 // Load environmental variables
 dotenv.config();
 
-const __filename = typeof __filename !== 'undefined' 
-  ? __filename 
-  : (typeof import.meta !== 'undefined' && import.meta.url ? fileURLToPath(import.meta.url) : '');
+const __filename = typeof import.meta !== 'undefined' && import.meta.url
+  ? fileURLToPath(import.meta.url)
+  : '';
 
-const __dirname = typeof __dirname !== 'undefined' 
-  ? __dirname 
-  : (__filename ? path.dirname(__filename) : process.cwd());
+const __dirname = __filename
+  ? path.dirname(__filename)
+  : process.cwd();
 const execPromise = util.promisify(exec);
 
 

@@ -1126,6 +1126,10 @@ body {
   .detail-value {
     font-size: 18px;
   }
+  .bg-music-toggle {
+    bottom: 85px;
+    right: 20px;
+  }
 }
 
 /* Nathan's Milestones Section (Polaroid Styles) */
